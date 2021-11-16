@@ -3,10 +3,7 @@
 #include <stdio.h>
 
 static const size_t buffer_size = 256;
-static const char* asm_filename = "out.asm";
-
-static const char *write_syscall = "0x2000004";
-static const char *read_syscall  = "0x2000003";
+/* static const char* asm_filename = "out.asm"; */
 
 #define LABEL_COUNT_STACK_SIZE 256
 static size_t label_stack[LABEL_COUNT_STACK_SIZE + 1] = {0};
@@ -24,10 +21,10 @@ int main(int argc, char *argv[])
     FILE *output_file = stdout;
     fprintf(
         output_file,
-        "global _start\n"
         "section .bss\n"
         "\tbuffer: resb %zu\n\n"
         "section .text\n"
+        "global _start\n"
         "_start:\n"
         "\tmov rbx, buffer\n",
         buffer_size
@@ -55,29 +52,29 @@ int main(int argc, char *argv[])
             fprintf(output_file, "    mov rdi, 1           ; .\n");
             fprintf(output_file, "    mov rsi, rbx         ; .\n");
             fprintf(output_file, "    mov rdx, 1           ; .\n");
-            fprintf(output_file, "    mov rax, %-10s  ; .\n", write_syscall);
+            fprintf(output_file, "    mov rax, 1           ; .\n");
             fprintf(output_file, "    syscall              ; .\n");
             break;
         case ',':
             fprintf(output_file, "    mov rdi, 0           ; ,\n");
             fprintf(output_file, "    mov rsi, rbx         ; ,\n");
             fprintf(output_file, "    mov rdx, 1           ; ,\n");
-            fprintf(output_file, "    mov rax, %-10s  ; ,\n", read_syscall);
+            fprintf(output_file, "    mov rax, 0           ; ,\n");
             fprintf(output_file, "    syscall              ; ,\n");
             break;
         case '[':
             label_frame_id = label_stack[label_stack_frame];
-            fprintf(output_file, "label_open_%03d_%03d:          ; [\n", label_stack_frame, label_frame_id);
+            fprintf(output_file, "label_open_%03zu_%03zu:          ; [\n", label_stack_frame, label_frame_id);
             fprintf(output_file, "    cmp byte [rbx], 0    ; [\n");
-            fprintf(output_file, "    je  label_close_%03d_%03d  ; [\n", label_stack_frame, label_frame_id);
+            fprintf(output_file, "    je  label_close_%03zu_%03zu  ; [\n", label_stack_frame, label_frame_id);
             label_stack_frame++;
             break;
         case ']':
             label_stack_frame--;
             label_frame_id = label_stack[label_stack_frame];
-            fprintf(output_file, "label_close_%03d_%03d:         ; ]\n", label_stack_frame, label_frame_id);
+            fprintf(output_file, "label_close_%03zu_%03zu:         ; ]\n", label_stack_frame, label_frame_id);
             fprintf(output_file, "    cmp byte [rbx], 0    ; ]\n");
-            fprintf(output_file, "    jne label_open_%03d_%03d   ; ]\n", label_stack_frame, label_frame_id);
+            fprintf(output_file, "    jne label_open_%03zu_%03zu   ; ]\n", label_stack_frame, label_frame_id);
             label_stack[label_stack_frame]++;
             break;
         case ';':
@@ -88,6 +85,9 @@ int main(int argc, char *argv[])
             // error
         }
     }
+    fprintf(output_file, "    mov rdi, 0   ; exit\n");
+    fprintf(output_file, "    mov rax, 60  ; exit\n");
+    fprintf(output_file, "    syscall      ; exit\n");
 
 
     return 0;
