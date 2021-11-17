@@ -1,3 +1,5 @@
 *.o
 a.out
-*.asm
+bin/*
+asm/*
+bfc
