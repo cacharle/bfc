@@ -6,17 +6,22 @@ Compiles [Brainfuck][1] to assembly and compile it to machine code with [`nasm`]
 
 ```
 $ make
-$ ./bfc < ./brainfuck.bf > ./brainfuck.asm
-```
+$ ./bfc -h
+Usage: bfc [-h] [-S] [-o file] [-b buffer_len] [-e buffer_elem_bytes] [INPUT_FILE]
 
-You can then compile the assembly with the following:
+INPUT_FILE  Brainfuck source (read stdin if not present)
 
-```
-$ nasm -f elf64 -o brainfuck.o brainfuck.asm 
-$ ld -o brainfuck brainfuck.o
-```
+-h          Print this message
+-S          Output assembly instead of compiled executable
+-o          Output filename ('-' for stdout)
+-b          Length of the buffer available the program
+-e          Number of bytes in each element of the program's buffer
+            (can only be: 1, 2, 4 or 8)
 
-Use `-f macho64` instead of `-f elf64` if you're on MacOS.
+$ ./bfc -o hello_world examples/hello_world.bf
+$ ./hello_world
+Hello World!
+```
 
 ## Examples
 

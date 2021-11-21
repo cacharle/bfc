@@ -30,8 +30,8 @@ static char  *output_filename = NULL;
 static size_t buffer_len = 256;
 static size_t buffer_elem_bytes = 1;
 
-static char *elem_bytes_asm_str = NULL;
-static char *elem_bytes_asm_str_res = NULL;
+static char *elem_bytes_asm_str = "byte";
+static char *elem_bytes_asm_str_res = "resb";
 
 #define TMP_FILEPATH_TEMPLATE "/tmp/bfc_asm_XXXXXX"
 #define TMP_OBJ_FILEPATH_TEMPLATE (TMP_FILEPATH_TEMPLATE ".o")
@@ -180,10 +180,11 @@ main(int argc, char *argv[])
     fprintf(output_file,
             "global _start\n\n"
             "section .bss\n"
-            "\tbuffer: resb %zu\n\n"
+            "\tbuffer: %s %zu\n\n"
             "section .text\n"
             "_start:\n"
             "\tmov rbx, buffer\n",
+            elem_bytes_asm_str_res,
             buffer_len);
     size_t label_frame_id;
 
@@ -193,16 +194,16 @@ main(int argc, char *argv[])
         switch (c)
         {
         case '>':
-            fprintf(output_file, "    inc rbx                  ; >\n");
+            fprintf(output_file, "    add rbx, %zu                ; >\n", buffer_elem_bytes);
             break;
         case '<':
-            fprintf(output_file, "    dec rbx                  ; <\n");
+            fprintf(output_file, "    sub rbx, %zu                ; <\n", buffer_elem_bytes);
             break;
         case '+':
-            fprintf(output_file, "    inc byte [rbx]           ; +\n");
+            fprintf(output_file, "    inc %s [rbx]           ; +\n", elem_bytes_asm_str);
             break;
         case '-':
-            fprintf(output_file, "    dec byte [rbx]           ; -\n");
+            fprintf(output_file, "    dec %s [rbx]           ; -\n", elem_bytes_asm_str);
             break;
         case '.':
             fprintf(output_file, "    mov rdi, 1               ; .\n");
@@ -224,7 +225,7 @@ main(int argc, char *argv[])
                     "label_open_%03zu_%03zu:          ; [\n",
                     label_stack_frame,
                     label_frame_id);
-            fprintf(output_file, "    cmp byte [rbx], 0        ; [\n");
+            fprintf(output_file, "    cmp %s [rbx], 0        ; [\n", elem_bytes_asm_str);
             fprintf(output_file,
                     "    je  label_close_%03zu_%03zu  ; [\n",
                     label_stack_frame,
@@ -238,7 +239,7 @@ main(int argc, char *argv[])
                     "label_close_%03zu_%03zu:         ; ]\n",
                     label_stack_frame,
                     label_frame_id);
-            fprintf(output_file, "    cmp byte [rbx], 0        ; ]\n");
+            fprintf(output_file, "    cmp %s [rbx], 0        ; ]\n", elem_bytes_asm_str);
             fprintf(output_file,
                     "    jne label_open_%03zu_%03zu   ; ]\n",
                     label_stack_frame,
