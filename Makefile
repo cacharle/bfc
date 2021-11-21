@@ -1,5 +1,5 @@
 CC = gcc
-CCFLAGS = -Wall -Wextra
+CCFLAGS = -Wall -Wextra -std=c99
 NASM = nasm
 
 ifeq ($(shell uname),Linux)

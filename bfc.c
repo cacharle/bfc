@@ -12,7 +12,7 @@ static size_t label_stack_frame = 0;
 
 int main(int argc, char *argv[])
 {
-    int option;
+    // int option;
 
     /* while ((option = getopt(argc, argv, "So:b:")) != -1) */
     /* { */
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
                 c = fgetc(input_file);
             break;
         default:
-            // error
+            break;
         }
     }
     fprintf(output_file, "\n");
